@@ -1,5 +1,14 @@
 package dev.botcity.recrutamento_problems.problem3;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 /**
  * Problema:
  *
@@ -12,11 +21,36 @@ package dev.botcity.recrutamento_problems.problem3;
  */
 public class Problem3 {
 
+    private final Client client;
+    private static final String URL_BASE = "https://viacep.com.br/ws/";
+
+    public Problem3() {
+        this.client = ClientBuilder.newClient();
+    }
+
+    public void close() {
+        this.client.close();
+    }
+
     /**
      * Implementar o método abaixo
      */
     private Address getAddressByCEP(String cep) {
-        return null;
+        try {
+            WebTarget resource = this.client.target(URL_BASE + cep).path("json");
+            Response response = resource.request("application/json;charset=UTF-8").get(Response.class);
+            String json = response.readEntity(String.class);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            if (mapper.readTree(json).get("erro") != null) {
+                Logger.getLogger(Problem3.class.getName()).log(Level.INFO, "Teste acima vai falhar pois URL retorna erro para este CEP!");
+                return null;
+            }
+            return mapper.readValue(json, Address.class);
+        } catch (Exception ex) {
+            Logger.getLogger(Problem3.class.getName()).log(Level.SEVERE, "Erro ao efetuar requisição!", ex);
+            return null;
+        }
     }
 
     /**
