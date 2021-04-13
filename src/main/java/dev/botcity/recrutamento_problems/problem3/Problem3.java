@@ -28,22 +28,21 @@ public class Problem3 {
      */
     private Address getAddressByCEP(String cep) {
         Client client = ClientBuilder.newClient();
+        Address address = null;
         try {
             WebTarget resource = client.target(URL_BASE + cep).path("json");
             Response response = resource.request("application/json;charset=UTF-8").get(Response.class);
             String json = response.readEntity(String.class);
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            if (mapper.readTree(json).get("erro") != null) {
-                Logger.getLogger(Problem3.class.getName()).log(Level.INFO, "Teste acima vai falhar pois URL retorna erro para este CEP!");
-                return null;
+            if (mapper.readTree(json).get("erro") == null) {
+                address = mapper.readValue(json, Address.class);
             }
-            return mapper.readValue(json, Address.class);
         } catch (Exception ex) {
             Logger.getLogger(Problem3.class.getName()).log(Level.SEVERE, "Erro ao efetuar requisição!", ex);
         }
         client.close();
-        return null;
+        return address;
     }
 
     /**
