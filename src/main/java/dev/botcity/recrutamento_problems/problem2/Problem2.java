@@ -1,5 +1,11 @@
 package dev.botcity.recrutamento_problems.problem2;
 
+import com.opencsv.CSVReader;
+import java.io.FileReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.collections.map.MultiKeyMap;
+
 /**
  *
  * Problema: - Implementar um Geolocator
@@ -23,7 +29,24 @@ public class Problem2 {
      * Instancie sua implementação no método abaixo
      */
     private void createGeolocation() {
-//		myGeolocator = new YourImplementationHere();
+        final MultiKeyMap mapCordinate = new MultiKeyMap();
+        
+        try {
+            CSVReader reader = new CSVReader(new FileReader("./res/uscitiesv1.5.csv"));
+            reader.skip(1);
+            for (String[] column : reader.readAll()) {
+                Coordinate coordinate = new Coordinate(Double.parseDouble(column[6]), Double.parseDouble(column[7]));
+                mapCordinate.put(column[1], column[2], coordinate);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(Problem2.class.getName()).log(Level.SEVERE, "Falha ao processar csv!", ex);
+        }
+
+        myGeolocator = new Geolocator() {
+            public Coordinate getCoordinate(String cityAscii, String stateId) {
+                return (Coordinate) mapCordinate.get(cityAscii, stateId);
+            }
+        };
     }
 
     /**
