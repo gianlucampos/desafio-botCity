@@ -21,23 +21,15 @@ import javax.ws.rs.core.Response;
  */
 public class Problem3 {
 
-    private final Client client;
     private static final String URL_BASE = "https://viacep.com.br/ws/";
-
-    public Problem3() {
-        this.client = ClientBuilder.newClient();
-    }
-
-    public void close() {
-        this.client.close();
-    }
 
     /**
      * Implementar o método abaixo
      */
     private Address getAddressByCEP(String cep) {
+        Client client = ClientBuilder.newClient();
         try {
-            WebTarget resource = this.client.target(URL_BASE + cep).path("json");
+            WebTarget resource = client.target(URL_BASE + cep).path("json");
             Response response = resource.request("application/json;charset=UTF-8").get(Response.class);
             String json = response.readEntity(String.class);
             ObjectMapper mapper = new ObjectMapper();
@@ -49,8 +41,9 @@ public class Problem3 {
             return mapper.readValue(json, Address.class);
         } catch (Exception ex) {
             Logger.getLogger(Problem3.class.getName()).log(Level.SEVERE, "Erro ao efetuar requisição!", ex);
-            return null;
         }
+        client.close();
+        return null;
     }
 
     /**
