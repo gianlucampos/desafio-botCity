@@ -1,18 +1,12 @@
 package dev.botcity.recrutamento_problems.problem1;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import dev.botcity.recrutamento_problems.problem2.Problem2;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * 1. Carregar o arquivo cte.xml localizado na pasta ./res/. 2. Criar um objeto
@@ -32,35 +26,13 @@ public class Problem1 {
      */
     private Cte loadCteFromXML(File file) {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(file);
-            XPath xpath = XPathFactory.newInstance().newXPath();
-
-            //chave
-            XPathExpression expInfCte = xpath.compile("/cteProc/CTe/infCte");
-            NodeList nodesInfCte = (NodeList) expInfCte.evaluate(doc, XPathConstants.NODESET);
-            Element elemInfCte = (Element) nodesInfCte.item(0);
-            String chave = elemInfCte.getAttribute("Id");
-
-            //serie e emissao
-            XPathExpression expIde = xpath.compile("/cteProc/CTe/infCte/ide");
-            NodeList nodesIde = (NodeList) expIde.evaluate(doc, XPathConstants.NODESET);
-            Element elemIde = (Element) nodesIde.item(0);
-            String serie = elemIde.getElementsByTagName("serie").item(0).getTextContent();
-            String emissao = elemIde.getElementsByTagName("dhEmi").item(0).getTextContent();
-
-            //valor
-            XPathExpression expVprest = xpath.compile("/cteProc/CTe/infCte/vPrest");
-            NodeList nodesVprest = (NodeList) expVprest.evaluate(doc, XPathConstants.NODESET);
-            Element elemVprest = (Element) nodesVprest.item(0);
-            String valor = elemVprest.getElementsByTagName("vTPrest").item(0).getTextContent();
-
+            ObjectMapper mapper = new XmlMapper();
+            JsonNode root = mapper.readTree(file);
             Cte cte = new Cte();
-            cte.setSerie(Integer.parseInt(serie));
-            cte.setChave(chave);
-            cte.setEmissao(emissao);
-            cte.setValor(Double.parseDouble(valor));
+            cte.setSerie(root.findValue("serie").asInt());
+            cte.setChave(root.findValue("Id").asText());
+            cte.setEmissao(root.findValue("dhEmi").asText());
+            cte.setValor(root.findValue("vTPrest").asDouble());
             return cte;
         } catch (Exception ex) {
             Logger.getLogger(Problem2.class.getName()).log(Level.SEVERE, "Falha ao processar xml!", ex);
